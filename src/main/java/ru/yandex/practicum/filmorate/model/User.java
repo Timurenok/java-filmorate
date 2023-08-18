@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.Data;
+
 import javax.validation.constraints.Email;
 import java.time.LocalDate;
 
-@lombok.Data
+@Data
 public class User {
     private int id;
     @Email
