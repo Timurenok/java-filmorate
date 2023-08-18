@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -19,7 +20,7 @@ import java.util.List;
 public class UserController {
     private static final LocalDate DATE_NOW = LocalDate.now();
     private static int id = 1;
-    private final HashMap<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
     public User postUser(@RequestBody User user) {
