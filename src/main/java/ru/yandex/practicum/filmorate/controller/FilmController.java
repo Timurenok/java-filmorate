@@ -1,66 +1,60 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private static final int MAX_LENGTH = 200;
-    private static final LocalDate EARLIEST_DATE = LocalDate.of(1895, 12, 28);
-    private static int id = 1;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController() {
+        filmService = new FilmService();
+    }
 
     @PostMapping
     public Film postFilm(@RequestBody Film film) {
-        checkFilm(film);
-        film.setId(generateId());
-        films.put(film.getId(), film);
+        filmService.filmStorage.postFilm(film);
         log.info("Добавление фильма {}", film);
         return film;
     }
 
     @PutMapping
     public Film putFilm(@RequestBody Film film) {
-        checkFilm(film);
-        if (films.get(film.getId()) == null) {
-            throw new UnknownFilmException("Пользователя с идентификатором " + film.getId() + " не существует.");
-        }
-        films.put(film.getId(), film);
+        filmService.filmStorage.putFilm(film);
         log.info("Обновление фильма {}", film);
         return film;
     }
 
     @GetMapping
     public List<Film> getFilms() {
-        return new ArrayList<>(films.values());
+        return filmService.filmStorage.getFilms();
     }
 
-    private void checkFilm(Film film) {
-        if (film.getName().isBlank() || film.getName() == null) {
-            throw new InvalidNameException("Название не может быть пустым.");
-        }
-        if (film.getDescription().length() > MAX_LENGTH) {
-            throw new InvalidSizeException("Максимальная длина описания — 200 символов.");
-        }
-        if (film.getReleaseDate().isBefore(EARLIEST_DATE)) {
-            throw new InvalidDateException("Дата релиза дожна быть не раньше 28 декабря 1895 года.");
-        }
-        if (film.getDuration() < 0) {
-            throw new InvalidDurationException("Продолжительность фильма должна быть положительной.");
-        }
+    @GetMapping(value = "/{id}")
+    public Film getFilm(@PathVariable int id) {
+        return filmService.filmStorage.getFilm(id);
     }
 
-    private int generateId() {
-        return id++;
+    @PutMapping(value = "/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping(value = "/{id}/like/{userId}")
+    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping(value = "/popular")
+    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getTopFilms(count);
     }
 }
